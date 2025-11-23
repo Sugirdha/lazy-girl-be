@@ -10,14 +10,9 @@ import {
 const weeks: PlannerWeek[] = [];
 
 export function getOrCreateWeek(startDate: string): PlannerWeek {
-
-    console.log('getOrCreateWeek called with startDate:', startDate);
-
-
     let existingWeek = weeks.find((week) => week.startDate === startDate);
 
     if (!existingWeek) {
-        console.log('No existing week found, creating new week for startDate:', startDate);
         existingWeek = {
         startDate,
         days: WEEK_DAYS.flatMap((day) =>
@@ -41,10 +36,6 @@ export function updateDaySlot(
     slot: DaySlot,
     recipeId: number,
 ): PlannerDay | null {
-
-    console.log('updateDaySlot called with:', { startDate, day, slot, recipeId });
-
-
     const week = getOrCreateWeek(startDate);
 
     const dayEntry = week.days.find((d) => d.day === day && d.slot === slot);

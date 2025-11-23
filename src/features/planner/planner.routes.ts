@@ -25,9 +25,7 @@ plannerRouter.get('/week', (req, res) => {
 
 plannerRouter.post('/week/slot', (req, res) => {
     const {startDate, day, slot, recipeId} = req.body ?? {};
-
-    console.log({startDate, day, slot, recipeId});
-
+    
     if (typeof startDate !== 'string' || !startDate) {
         return res.status(400).json({error: 'startDate is required'});
     }
