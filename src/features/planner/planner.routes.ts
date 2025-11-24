@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getOrCreateWeek, updateDaySlot} from "./planner.data";
+import { getOrCreateWeek, updateEntry} from "./planner.data";
 import { DAY_SLOTS, DaySlot, WEEK_DAYS, WeekDay } from "./planner.types";
 
 export const plannerRouter = Router();
@@ -25,7 +25,7 @@ plannerRouter.get('/week', (req, res) => {
 
 plannerRouter.post('/week/slot', (req, res) => {
     const {startDate, day, slot, recipeId} = req.body ?? {};
-    
+
     if (typeof startDate !== 'string' || !startDate) {
         return res.status(400).json({error: 'startDate is required'});
     }
@@ -43,11 +43,11 @@ plannerRouter.post('/week/slot', (req, res) => {
     }
 
     try {
-        const updatedDay = updateDaySlot(startDate, day, slot, recipeId);
-        if (updatedDay) {
-            res.json(updatedDay);
+        const updatedEntry = updateEntry(startDate, day, slot, recipeId);
+        if (updatedEntry) {
+            res.json(updatedEntry);
         } else {
-            res.status(404).json({error: 'Day not found'});
+            res.status(404).json({error: 'Entry not found'});
         }
     } catch (err) {
         console.error(err);
