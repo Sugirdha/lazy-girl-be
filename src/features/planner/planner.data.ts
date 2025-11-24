@@ -1,6 +1,6 @@
 import {
   PlannerWeek,
-  PlannerDay,
+  PlannerEntry,
   WEEK_DAYS,
   DAY_SLOTS,
   WeekDay,
@@ -15,7 +15,7 @@ export function getOrCreateWeek(startDate: string): PlannerWeek {
     if (!existingWeek) {
         existingWeek = {
         startDate,
-        days: WEEK_DAYS.flatMap((day) =>
+        entries: WEEK_DAYS.flatMap((day) =>
             DAY_SLOTS.map((slot) => ({
             day,
             slot,
@@ -30,15 +30,15 @@ export function getOrCreateWeek(startDate: string): PlannerWeek {
     return existingWeek;
 }
 
-export function updateDaySlot(
+export function updateEntry(
     startDate: string,
     day: WeekDay,
     slot: DaySlot,
     recipeId: number,
-): PlannerDay | null {
+): PlannerEntry | null {
     const week = getOrCreateWeek(startDate);
 
-    const dayEntry = week.days.find((d) => d.day === day && d.slot === slot);
+    const dayEntry = week.entries.find((e) => e.day === day && e.slot === slot);
     if (!dayEntry) {
         return null;
     }
