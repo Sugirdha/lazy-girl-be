@@ -1,37 +1,59 @@
-import { Recipe } from "./recipe.types";
+import { Prisma } from '@prisma/client';
+import { prisma } from '../../lib/prisma';
+import { Recipe } from './recipe.types';
 
-const recipes: Recipe[] = [
-    {
-        id: 1,
-        name: "Spaghetti Bolognese",
-        ingredients: ["spaghetti", "ground beef", "tomato sauce", "onion", "garlic"],
-        effortLevel: "medium",
-    },
-    {
-        id: 2,
-        name: "Caesar Salad",
-        ingredients: ["romaine lettuce", "croutons", "parmesan cheese", "Caesar dressing"],
-        effortLevel: "low",
-    },
-    {
-        id: 3,
-        name: "Beef Wellington",
-        ingredients: ["beef tenderloin", "mushrooms", "prosciutto", "puff pastry", "egg wash"],
-        effortLevel: "high",
-    },
-];
+type RecipeWithIngredients = Prisma.RecipeGetPayload<{
+    include: {
+        ingredients: true;
+    };
+}>;
 
-export function getAllRecipes(): Recipe[] {
-    return recipes;
+const mapRecipe = (recipe: RecipeWithIngredients): Recipe => ({
+    id: recipe.id,
+    name: recipe.name,
+    ingredients: recipe.ingredients.map((ingredient) => ingredient.name),
+    effortLevel: recipe.effortLevel,
+});
+
+const recipeInclude = {
+    ingredients: {
+        orderBy: {
+            id: 'asc' as const,
+        },
+    },
+};
+
+export async function getAllRecipes(): Promise<Recipe[]> {
+    const recipes = await prisma.recipe.findMany({
+        include: recipeInclude,
+        orderBy: {
+            id: 'asc',
+        },
+    });
+
+    return recipes.map(mapRecipe);
 }
 
-export function getRecipeById(id: number): Recipe | undefined {
-    return recipes.find(r => r.id === id);
+export async function getRecipeById(id: number): Promise<Recipe | undefined> {
+    const recipe = await prisma.recipe.findUnique({
+        where: { id },
+        include: recipeInclude,
+    });
+
+    return recipe ? mapRecipe(recipe) : undefined;
 }
 
-export function addRecipe(input: Omit<Recipe, 'id'>): Recipe {
-    const newRecipe: Recipe = {id: recipes.length + 1, ...input};
-    recipes.push(newRecipe);
+export async function addRecipe(input: Omit<Recipe, 'id'>): Promise<Recipe> {
+    const recipe = await prisma.recipe.create({
+        data: {
+            name: input.name,
+            effortLevel: input.effortLevel,
+            ingredients: {
+                create: input.ingredients.map((name) => ({ name })),
+            },
+        },
+        include: recipeInclude,
+    });
 
-    return newRecipe;
+    return mapRecipe(recipe);
 }

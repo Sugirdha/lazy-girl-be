@@ -12,3 +12,5 @@ build/
 # editor stuff
 .vscode/
 .DS_Store
+
+/src/generated/prisma

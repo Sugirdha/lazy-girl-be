@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EffortLevel {
+  low
+  medium
+  high
+}
+
+enum WeekDay {
+  sun
+  mon
+  tue
+  wed
+  thu
+  fri
+  sat
+}
+
+enum DaySlot {
+  breakfast
+  lunch
+  dinner
+  snack
+}
+
+model Recipe {
+  id             Int           @id @default(autoincrement())
+  name           String
+  ingredients    RecipeIngredient[]
+  effortLevel    EffortLevel
+
+  plannerEntries PlannerEntry[]
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model RecipeIngredient {
+  id        Int     @id @default(autoincrement())
+  recipeId  Int
+  recipe    Recipe  @relation(fields: [recipeId], references: [id])
+  name      String
+}
+
+model PlannerEntry {
+  id        Int        @id @default(autoincrement())
+  weekId    Int
+  week      PlannerWeek @relation(fields: [weekId], references: [id])
+  day       WeekDay
+  slot      DaySlot
+  recipeId  Int?
+  recipe    Recipe?    @relation(fields: [recipeId], references: [id])
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([weekId, day, slot])
+}
+
+model PlannerWeek {
+  id        Int        @id @default(autoincrement())
+  startDate DateTime
+  plannerEntries  PlannerEntry[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([startDate])
+}
