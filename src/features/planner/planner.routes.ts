@@ -13,6 +13,10 @@ const isDaySlot = (value: unknown): value is DaySlot => {
 };
 
 plannerRouter.get('/week', async (req, res) => {
+    if (!req.currentUser) {
+        return res.status(401).json({ message: 'Unauthenticated' });
+    }
+    const userId = req.currentUser.id;
     const {startDate} = req.query;
 
     if (typeof startDate !== 'string' || !startDate) {
@@ -20,7 +24,7 @@ plannerRouter.get('/week', async (req, res) => {
     }
 
     try {
-        const week = await getOrCreateWeek(startDate);
+        const week = await getOrCreateWeek(userId, startDate);
         res.json(week);
     } catch (err) {
         if (err instanceof InvalidStartDateError) {
@@ -33,6 +37,11 @@ plannerRouter.get('/week', async (req, res) => {
 })
 
 plannerRouter.post('/week/slot', async (req, res) => {
+    if (!req.currentUser) {
+        return res.status(401).json({ message: 'Unauthenticated' });
+    }
+
+    const userId = req.currentUser.id;
     const {startDate, day, slot, recipeId} = req.body ?? {};
 
     if (typeof startDate !== 'string' || !startDate) {
@@ -52,7 +61,7 @@ plannerRouter.post('/week/slot', async (req, res) => {
     }
 
     try {
-        const updatedEntry = await updateEntry(startDate, day, slot, recipeId);
+        const updatedEntry = await updateEntry(userId, startDate, day, slot, recipeId);
         if (updatedEntry) {
             res.json(updatedEntry);
         } else {
