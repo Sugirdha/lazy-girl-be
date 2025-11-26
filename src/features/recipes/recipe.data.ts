@@ -2,26 +2,27 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { Recipe } from './recipe.types';
 
+const recipeInclude = {
+    ingredients: {
+        include: {
+            ingredient: true,
+        },
+        orderBy: {
+            ingredientId: 'asc' as const,
+        },
+    },
+};
+
 type RecipeWithIngredients = Prisma.RecipeGetPayload<{
-    include: {
-        ingredients: true;
-    };
+    include: typeof recipeInclude;
 }>;
 
 const mapRecipe = (recipe: RecipeWithIngredients): Recipe => ({
     id: recipe.id,
     name: recipe.name,
-    ingredients: recipe.ingredients.map((ingredient) => ingredient.name),
+    ingredients: recipe.ingredients.map((ri) => ri.ingredient.name),
     effortLevel: recipe.effortLevel,
 });
-
-const recipeInclude = {
-    ingredients: {
-        orderBy: {
-            id: 'asc' as const,
-        },
-    },
-};
 
 export async function getAllRecipes(): Promise<Recipe[]> {
     const recipes = await prisma.recipe.findMany({
@@ -49,7 +50,14 @@ export async function addRecipe(input: Omit<Recipe, 'id'>): Promise<Recipe> {
             name: input.name,
             effortLevel: input.effortLevel,
             ingredients: {
-                create: input.ingredients.map((name) => ({ name })),
+                create: input.ingredients.map((name) => ({ 
+                    ingredient: {
+                        connectOrCreate: {
+                            where: { name },
+                            create: { name },
+                        },
+                    }
+                 })),
             },
         },
         include: recipeInclude,

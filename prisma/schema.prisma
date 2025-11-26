@@ -43,10 +43,30 @@ model Recipe {
 }
 
 model RecipeIngredient {
+  recipeId      Int
+  ingredientId  Int
+  
+  recipe        Recipe        @relation(fields: [recipeId], references: [id])
+  ingredient    Ingredient    @relation(fields: [ingredientId], references: [id])
+
+  quantity      String?
+  notes         String?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@id([recipeId, ingredientId])
+}
+
+model Ingredient {
   id        Int     @id @default(autoincrement())
-  recipeId  Int
-  recipe    Recipe  @relation(fields: [recipeId], references: [id])
-  name      String
+  name      String  @unique
+
+  recipes   RecipeIngredient[]
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
 }
 
 model PlannerEntry {
