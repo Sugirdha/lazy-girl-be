@@ -30,6 +30,7 @@ export async function getAllRecipes(userId: number): Promise<Recipe[]> {
         orderBy: {
             id: 'asc',
         },
+        where: { userId },
     });
 
     return recipes.map(mapRecipe);
@@ -37,7 +38,10 @@ export async function getAllRecipes(userId: number): Promise<Recipe[]> {
 
 export async function getRecipeById(userId: number, recipeId: number): Promise<Recipe | undefined> {
     const recipe = await prisma.recipe.findUnique({
-        where: { id: recipeId },
+        where: {
+            id: recipeId,
+            userId,
+         },
         include: recipeInclude,
     });
 
@@ -65,4 +69,12 @@ export async function addRecipe(userId: number, input: Omit<Recipe, 'id'>): Prom
     });
 
     return mapRecipe(recipe);
+}
+
+export async function deleteRecipe(userId: number, recipeId: number): Promise<boolean> {
+    const result = await prisma.recipe.deleteMany({
+        where: { id: recipeId, userId },
+    });
+
+    return result.count > 0;
 }
