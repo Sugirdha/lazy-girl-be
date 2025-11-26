@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { addRecipe, getAllRecipes, getRecipeById } from "./recipe.data";
-import { Recipe } from "./recipe.types";
+import { Router } from 'express';
+import { addRecipe, getAllRecipes, getRecipeById } from './recipe.data';
+import { Recipe } from './recipe.types';
 
 
 type CreateRecipeBody = {
@@ -11,23 +11,38 @@ type CreateRecipeBody = {
 
 export const recipesRouter = Router();
 
-recipesRouter.get('/', (_req, res) => {
-    const data = getAllRecipes();
-    res.json(data);
-});
-
-recipesRouter.get('/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const recipe = getRecipeById(id);
-
-    if (!recipe) {
-        return res.status(404).json({ error: 'Recipe not found' });
+recipesRouter.get('/', async (_req, res) => {
+    try {
+        const data = await getAllRecipes();
+        res.json(data);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
-    
-    return res.json(recipe);
 });
 
-recipesRouter.post('/', (req, res) => {
+recipesRouter.get('/:id', async (req, res) => {
+    const id = Number(req.params.id);
+
+    if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid recipe id' });
+    }
+
+    try {
+        const recipe = await getRecipeById(id);
+
+        if (!recipe) {
+            return res.status(404).json({ error: 'Recipe not found' });
+        }
+        
+        return res.json(recipe);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+recipesRouter.post('/', async (req, res) => {
     const body: CreateRecipeBody = req.body;
 
     if (!body.name || !body.ingredients || !body.effortLevel) {
@@ -44,7 +59,11 @@ recipesRouter.post('/', (req, res) => {
         effortLevel: body.effortLevel,
     };
 
-    const created = addRecipe(newRecipe);
-
-    return res.status(201).json(created);
+    try {
+        const created = await addRecipe(newRecipe);
+        return res.status(201).json(created);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 });
