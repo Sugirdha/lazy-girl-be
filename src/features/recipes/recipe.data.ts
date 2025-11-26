@@ -24,7 +24,7 @@ const mapRecipe = (recipe: RecipeWithIngredients): Recipe => ({
     effortLevel: recipe.effortLevel,
 });
 
-export async function getAllRecipes(): Promise<Recipe[]> {
+export async function getAllRecipes(userId: number): Promise<Recipe[]> {
     const recipes = await prisma.recipe.findMany({
         include: recipeInclude,
         orderBy: {
@@ -35,18 +35,19 @@ export async function getAllRecipes(): Promise<Recipe[]> {
     return recipes.map(mapRecipe);
 }
 
-export async function getRecipeById(id: number): Promise<Recipe | undefined> {
+export async function getRecipeById(userId: number, recipeId: number): Promise<Recipe | undefined> {
     const recipe = await prisma.recipe.findUnique({
-        where: { id },
+        where: { id: recipeId },
         include: recipeInclude,
     });
 
     return recipe ? mapRecipe(recipe) : undefined;
 }
 
-export async function addRecipe(input: Omit<Recipe, 'id'>): Promise<Recipe> {
+export async function addRecipe(userId: number, input: Omit<Recipe, 'id'>): Promise<Recipe> {
     const recipe = await prisma.recipe.create({
         data: {
+            userId,
             name: input.name,
             effortLevel: input.effortLevel,
             ingredients: {

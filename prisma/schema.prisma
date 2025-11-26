@@ -30,8 +30,22 @@ enum DaySlot {
   snack
 }
 
+model User {
+  id              Int             @id @default(autoincrement())
+  displayName     String
+  email           String          @unique
+  weekStartDay    WeekDay
+
+  createdAt       DateTime        @default(now())
+  
+  recipes         Recipe[]
+  plannerWeeks    PlannerWeek[] 
+}
+
 model Recipe {
   id             Int           @id @default(autoincrement())
+  userId         Int
+  user           User          @relation(fields: [userId], references: [id])
   name           String
   ingredients    RecipeIngredient[]
   effortLevel    EffortLevel
@@ -66,7 +80,6 @@ model Ingredient {
 
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-
 }
 
 model PlannerEntry {
@@ -76,7 +89,7 @@ model PlannerEntry {
   day       WeekDay
   slot      DaySlot
   recipeId  Int?
-  recipe    Recipe?    @relation(fields: [recipeId], references: [id])
+  recipe    Recipe?    @relation(fields: [recipeId], references: [id], onDelete: SetNull)
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -86,11 +99,14 @@ model PlannerEntry {
 
 model PlannerWeek {
   id        Int        @id @default(autoincrement())
+  userId    Int
+  user      User       @relation(fields: [userId], references: [id])
+
   startDate DateTime
   plannerEntries  PlannerEntry[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  @@unique([startDate])
+  @@unique([userId, startDate])
 }

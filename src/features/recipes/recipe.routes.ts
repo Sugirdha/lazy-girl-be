@@ -11,9 +11,15 @@ type CreateRecipeBody = {
 
 export const recipesRouter = Router();
 
-recipesRouter.get('/', async (_req, res) => {
+recipesRouter.get('/', async (req, res) => {
+    if (!req.currentUser) {
+        return res.status(401).json({ message: 'Unauthenticated' });
+    }
+
+    const userId = req.currentUser.id;
+
     try {
-        const data = await getAllRecipes();
+        const data = await getAllRecipes(userId);
         res.json(data);
     } catch (err) {
         console.error(err);
@@ -22,14 +28,19 @@ recipesRouter.get('/', async (_req, res) => {
 });
 
 recipesRouter.get('/:id', async (req, res) => {
-    const id = Number(req.params.id);
+    if (!req.currentUser) {
+        return res.status(401).json({ message: 'Unauthenticated' });
+    }
 
-    if (Number.isNaN(id)) {
+    const userId = req.currentUser.id;
+    const recipeId = Number(req.params.id);
+
+    if (Number.isNaN(recipeId)) {
         return res.status(400).json({ error: 'Invalid recipe id' });
     }
 
     try {
-        const recipe = await getRecipeById(id);
+        const recipe = await getRecipeById(userId, recipeId);
 
         if (!recipe) {
             return res.status(404).json({ error: 'Recipe not found' });
@@ -43,6 +54,11 @@ recipesRouter.get('/:id', async (req, res) => {
 });
 
 recipesRouter.post('/', async (req, res) => {
+    if (!req.currentUser) {
+        return res.status(401).json({ message: 'Unauthenticated' });
+    }
+
+    const userId = req.currentUser.id;
     const body: CreateRecipeBody = req.body;
 
     if (!body.name || !body.ingredients || !body.effortLevel) {
@@ -60,7 +76,7 @@ recipesRouter.post('/', async (req, res) => {
     };
 
     try {
-        const created = await addRecipe(newRecipe);
+        const created = await addRecipe(userId, newRecipe);
         return res.status(201).json(created);
     } catch (err) {
         console.error(err);

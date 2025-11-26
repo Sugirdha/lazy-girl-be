@@ -95,26 +95,37 @@ const sortEntries = (entries: PlannerEntryData[]): PlannerEntryData[] => {
   });
 };
 
-const ensureWeekContext = async (startDate: string) => {
+const ensureWeekContext = async (userId: number, startDate: string) => {
   const parsedDate = parseStartDate(startDate);
 
   const weekRecord = await prisma.plannerWeek.upsert({
-    where: { startDate: parsedDate },
-    create: { startDate: parsedDate },
+    where: {
+      userId_startDate: {
+        userId: userId,
+        startDate: parsedDate,
+      },
+    },
+    create: {
+      userId: userId,
+      startDate: parsedDate,
+    },
     update: {},
+    include: {
+      plannerEntries: true,
+    },
   });
 
   const entries = await ensureEntries(weekRecord.id);
 
-  return {
+   return {
     weekId: weekRecord.id,
     startDateIso: weekRecord.startDate.toISOString(),
     entries,
   };
 };
 
-export async function getOrCreateWeek(startDate: string): Promise<PlannerWeek> {
-  const { entries, startDateIso } = await ensureWeekContext(startDate);
+export async function getOrCreateWeek(userId: number, startDate: string): Promise<PlannerWeek> {
+  const { entries, startDateIso } = await ensureWeekContext(userId, startDate);
 
   return {
     startDate: startDateIso,
@@ -123,12 +134,13 @@ export async function getOrCreateWeek(startDate: string): Promise<PlannerWeek> {
 }
 
 export async function updateEntry(
+  userId: number,
   startDate: string,
   day: WeekDay,
   slot: DaySlot,
   recipeId: number,
 ): Promise<PlannerEntryData | null> {
-  const { weekId } = await ensureWeekContext(startDate);
+  const { weekId } = await ensureWeekContext(userId, startDate);
 
   try {
     const entry = await prisma.plannerEntry.update({
