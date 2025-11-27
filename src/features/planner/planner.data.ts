@@ -22,10 +22,14 @@ export class RecipeNotFoundError extends Error {
   }
 }
 
-type DbPlannerEntry = {
+type DbPlannerEntry = { // TODO: derive DbPlannerEntry from Prisma types
   day: WeekDay;
   slot: DaySlot;
   recipeId: number | null;
+  recipe?: {
+    name: string;
+    effortLevel: string;
+  } | null;
 };
 
 const dayOrder = new Map(WEEK_DAYS.map((day, index) => [day, index]));
@@ -47,6 +51,12 @@ const ensureEntries = async (weekId: number): Promise<DbPlannerEntry[]> => {
       day: true,
       slot: true,
       recipeId: true,
+      recipe: {
+        select: {
+          name: true,
+          effortLevel: true,
+        }
+      },
     },
   });
 
@@ -70,9 +80,15 @@ const ensureEntries = async (weekId: number): Promise<DbPlannerEntry[]> => {
         day: true,
         slot: true,
         recipeId: true,
+        recipe: {
+          select: {
+            name: true,
+            effortLevel: true,
+          }
+        },
       },
     });
-  }
+  }  
 
   return existingEntries;
 };
@@ -81,6 +97,8 @@ const toPlannerEntry = (entry: DbPlannerEntry): PlannerEntryData => ({
   day: entry.day,
   slot: entry.slot,
   recipeId: entry.recipeId,
+  recipeName: entry.recipe?.name ?? null,
+  effortLevel: entry.recipe?.effortLevel ?? null,
 });
 
 const sortEntries = (entries: PlannerEntryData[]): PlannerEntryData[] => {

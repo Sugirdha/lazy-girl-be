@@ -49,6 +49,7 @@ model Recipe {
   name           String
   ingredients    RecipeIngredient[]
   effortLevel    EffortLevel
+  totalCalories  Int?
 
   plannerEntries PlannerEntry[]
 
