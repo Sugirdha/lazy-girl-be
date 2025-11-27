@@ -7,6 +7,8 @@ export type PlannerEntry = {
     day: WeekDay;
     slot: DaySlot;
     recipeId: number | null;
+    recipeName: string | null;
+    effortLevel: string | null;
 }
 
 export type PlannerWeek = {
