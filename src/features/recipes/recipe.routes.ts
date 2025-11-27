@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { addRecipe, getAllRecipes, getRecipeById } from './recipe.data';
+import { addRecipe, deleteRecipe, getAllRecipes, getRecipeById } from './recipe.data';
 import { Recipe } from './recipe.types';
 
 
@@ -78,6 +78,32 @@ recipesRouter.post('/', async (req, res) => {
     try {
         const created = await addRecipe(userId, newRecipe);
         return res.status(201).json(created);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+recipesRouter.delete('/:id', async (req, res) => {
+    if (!req.currentUser) {
+        return res.status(401).json({ message: 'Unauthenticated' });
+    }
+
+    const userId = req.currentUser.id;
+    const recipeId = Number(req.params.id);
+
+    if (Number.isNaN(recipeId)) {
+        return res.status(400).json({ error: 'Invalid recipe id' });
+    }
+
+    try {
+        const deleted = await deleteRecipe(userId, recipeId);
+
+        if (!deleted) {
+            return res.status(404).json({ error: 'Recipe not found' });
+        }
+
+        return res.status(204).send();
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: 'Internal server error' });
