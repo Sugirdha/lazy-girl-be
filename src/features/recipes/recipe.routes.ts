@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { addRecipe, deleteRecipe, getAllRecipes, getRecipeById } from './recipe.data';
+import { addRecipe, deleteRecipe, getAllRecipes, getRecipeById, updateRecipe } from './recipe.data';
 import { Recipe } from './recipe.types';
 
 
@@ -83,6 +83,46 @@ recipesRouter.post('/', async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+recipesRouter.patch('/:id', async(req, res) => {
+    if (!req.currentUser) {
+        return res.status(401).json({ message: 'Unauthenticated' });
+    }
+
+    const userId = req.currentUser.id;
+    const recipeId = Number(req.params.id);
+    const body: Partial<CreateRecipeBody> = req.body;
+    
+    if (Number.isNaN(recipeId)) {
+        return res.status(400).json({ error: 'Invalid recipe id' });
+    }
+
+    try {
+        const existingRecipe = await getRecipeById(userId, recipeId);
+
+        if (!existingRecipe) {
+            return res.status(404).json({ error: 'Recipe not found' });
+        }
+
+        const updatedRecipe: Recipe = {
+            ...existingRecipe,
+            name: body.name ?? existingRecipe.name,
+            ingredients: body.ingredients ?? existingRecipe.ingredients,
+            effortLevel: body.effortLevel ?? existingRecipe.effortLevel,
+        };
+
+        const success = await updateRecipe(userId, recipeId, updatedRecipe);
+
+        if (!success) {
+            return res.status(500).json({ error: 'Failed to update recipe' });
+        }
+
+        return res.json(updatedRecipe);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+})
 
 recipesRouter.delete('/:id', async (req, res) => {
     if (!req.currentUser) {
