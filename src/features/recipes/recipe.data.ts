@@ -71,6 +71,29 @@ export async function addRecipe(userId: number, input: Omit<Recipe, 'id'>): Prom
     return mapRecipe(recipe);
 }
 
+export async function updateRecipe(userId: number, recipeId: number, input: Recipe): Promise<boolean> {
+    const result = await prisma.recipe.update({
+        where: { id: recipeId, userId },
+        data: {
+            name: input.name,
+            effortLevel: input.effortLevel,
+            ingredients: {
+                deleteMany: {},
+                create: input.ingredients.map((name) => ({
+                    ingredient: {
+                        connectOrCreate: {
+                            where: { name },
+                            create: { name },
+                        }
+                    }
+                }))
+            }
+        }
+    });
+
+    return result.id === recipeId;
+}
+
 export async function deleteRecipe(userId: number, recipeId: number): Promise<boolean> {
     const result = await prisma.recipe.deleteMany({
         where: { id: recipeId, userId },
