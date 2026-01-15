@@ -3,7 +3,7 @@
 // routes can rely on req.currentUser and Prisma userId.
  
 import type { Request, Response, NextFunction } from 'express';
-import { prisma } from '../db';
+import { prisma } from '../lib/prisma';
 
 export async function authMiddleware(
   req: Request,
