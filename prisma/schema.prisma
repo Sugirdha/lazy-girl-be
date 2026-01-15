@@ -30,11 +30,29 @@ enum DaySlot {
   snack
 }
 
+enum MeasurementUnit {
+  g
+  kg
+  ml
+  l
+  tsp
+  tbsp
+  cup
+  piece
+  slice
+  pinch
+  can
+  packet
+  to_taste
+  other
+}
+
+
 model User {
   id              Int             @id @default(autoincrement())
   displayName     String
   email           String          @unique
-  weekStartDay    WeekDay
+  weekStartDay    WeekDay         @default(sun)
 
   createdAt       DateTime        @default(now())
   
@@ -43,18 +61,38 @@ model User {
 }
 
 model Recipe {
-  id             Int           @id @default(autoincrement())
-  userId         Int
-  user           User          @relation(fields: [userId], references: [id])
-  name           String
-  ingredients    RecipeIngredient[]
-  effortLevel    EffortLevel
-  totalCalories  Int?
+  id              Int           @id @default(autoincrement())
+  userId          Int
+  user            User          @relation(fields: [userId], references: [id])
+
+  name            String
+  description     String?
+  servings        Int?
+  effortLevel     EffortLevel
+  ingredients     RecipeIngredient[]
+  instructions    String[]
+  totalCalories   Int?
+  
+  prepTime        Int?
+  cookTime        Int?
+  
+  dietCategoryId  Int?
+  dietCategory    DietCategory? @relation(fields: [dietCategoryId], references: [id])
 
   plannerEntries PlannerEntry[]
 
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+}
+
+model DietCategory {
+  id            Int     @id @default(autoincrement())
+  name          String  @unique
+
+  recipes       Recipe[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model RecipeIngredient {
@@ -64,7 +102,8 @@ model RecipeIngredient {
   recipe        Recipe        @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   ingredient    Ingredient    @relation(fields: [ingredientId], references: [id])
 
-  quantity      String?
+  quantity      Float?
+  unit          MeasurementUnit?
   notes         String?
 
   createdAt      DateTime      @default(now())

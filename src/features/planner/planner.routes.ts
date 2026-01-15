@@ -56,8 +56,8 @@ plannerRouter.post('/week/slot', async (req, res) => {
         return res.status(400).json({error: 'valid slot is required'});
     }
 
-    if (typeof recipeId !== 'number' || !recipeId) {
-        return res.status(400).json({error: 'recipeId is required'});
+    if (typeof recipeId !== 'number' || !Number.isInteger(recipeId) || recipeId <= 0) {
+        return res.status(400).json({ error: 'valid recipeId is required' });
     }
 
     try {

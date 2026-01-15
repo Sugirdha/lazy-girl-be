@@ -3,6 +3,7 @@ import cors from 'cors';
 import { recipesRouter } from './features/recipes/recipe.routes';
 import { plannerRouter } from './features/planner/planner.routes';
 import { authMiddleware } from './middleware/authMiddleware';
+import { errorHandler } from './middleware/errorHandler';
 
 export function createApp() {
   const app = express();
@@ -21,6 +22,9 @@ export function createApp() {
   // Feature routes
   app.use('/recipes', recipesRouter);
   app.use('/planner', plannerRouter);
+
+  app.use(errorHandler);
+
 
   return app;
 }

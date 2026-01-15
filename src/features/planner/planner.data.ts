@@ -176,6 +176,12 @@ export async function updateEntry(
         day: true,
         slot: true,
         recipeId: true,
+        recipe: {
+          select: {
+            name: true,
+            effortLevel: true,
+          },
+        },
       },
     });
 
