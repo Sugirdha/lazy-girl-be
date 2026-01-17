@@ -8,7 +8,14 @@ import { errorHandler } from './middleware/errorHandler';
 export function createApp() {
   const app = express();
 
-  app.use(cors());
+  app.use(cors({
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:4321',
+      'https://lazy-girl-be.vercel.app',
+    ],
+    credentials: true,
+  }));
   app.use(express.json());
 
   // Apply authentication middleware
