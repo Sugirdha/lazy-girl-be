@@ -9,11 +9,7 @@ export function createApp() {
   const app = express();
 
   app.use(cors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:4321',
-      'https://lazy-girl-be.vercel.app',
-    ],
+    origin: '*',
     credentials: true,
   }));
   app.use(express.json());
