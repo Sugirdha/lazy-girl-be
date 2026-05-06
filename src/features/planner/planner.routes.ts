@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getOrCreateWeek, updateEntry, InvalidStartDateError, RecipeNotFoundError } from './planner.data';
+import { getOrCreateWeek, updateEntry, InvalidStartDateError, RecipeNotFoundError, clearEntry } from './planner.data';
 import { DAY_SLOTS, DaySlot, WEEK_DAYS, WeekDay } from './planner.types';
 
 export const plannerRouter = Router();
@@ -56,11 +56,23 @@ plannerRouter.post('/week/slot', async (req, res) => {
         return res.status(400).json({error: 'valid slot is required'});
     }
 
-    if (typeof recipeId !== 'number' || !Number.isInteger(recipeId) || recipeId <= 0) {
+    const isClearingSlot = recipeId === undefined || recipeId === null;
+
+    if (!isClearingSlot && (typeof recipeId !== 'number' || !Number.isInteger(recipeId) || recipeId <= 0)) {
         return res.status(400).json({ error: 'valid recipeId is required' });
     }
 
     try {
+        if (isClearingSlot) {
+            const clearedEntry = await clearEntry(userId, startDate, day, slot);
+
+            if (!clearedEntry) {
+                return res.status(404).json({error: 'Entry not found'});
+            }
+
+            return res.json({ message: 'Slot cleared' });
+        }
+
         const updatedEntry = await updateEntry(userId, startDate, day, slot, recipeId);
         if (updatedEntry) {
             res.json(updatedEntry);
