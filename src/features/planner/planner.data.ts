@@ -156,7 +156,7 @@ export async function updateEntry(
   startDate: string,
   day: WeekDay,
   slot: DaySlot,
-  recipeId: number,
+  recipeId: number | null,
 ): Promise<PlannerEntryData | null> {
   const { weekId } = await ensureWeekContext(userId, startDate);
 
@@ -191,7 +191,9 @@ export async function updateEntry(
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === 'P2003'
     ) {
-      throw new RecipeNotFoundError(recipeId);
+      if (recipeId !== null) {
+        throw new RecipeNotFoundError(recipeId);
+      }
     }
 
     if (
@@ -203,4 +205,13 @@ export async function updateEntry(
 
     throw err;
   }
+}
+
+export async function clearEntry(
+  userId: number,
+  startDate: string,
+  day: WeekDay,
+  slot: DaySlot,
+): Promise<PlannerEntryData | null> {
+  return updateEntry(userId, startDate, day, slot, null);
 }
